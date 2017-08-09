@@ -3,15 +3,16 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
         params
         config
         colors
+        ptbAdaptor
     end
-    
+
     methods (Access = private)
         function text=createConfigText(~, recordedEyeBit, configBit, enumerations)
             text='';
-            if PTBModule.Eyelink.RecordedEye.Left.isIn(recordedEyeBit)
+            if Eyelink.RecordedEye.Left.isIn(recordedEyeBit)
                 text=[text ',LEFT'];
             end
-            if PTBModule.Eyelink.RecordedEye.Right.isIn(recordedEyeBit)
+            if Eyelink.RecordedEye.Right.isIn(recordedEyeBit)
                 text=[text ',RIGHT'];
             end
             for i=1:numel(enumerations)
@@ -25,96 +26,141 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
         function negColor=negativeColor(~, color)
             negColor=255*(color<(255/2));
         end
+        
+        function color=convertColor(this, rgb)
+            [~,color]=min(sum((this.colors-rgb).^2,2));
+            color=color-1;
+        end
+        
+        function presentCircle(this, circle)
+            this.presentRectangle(StimulusPresentation.VisualStimulus.Rectanlge(...
+                circle.getRadius(), circle.getPosition(), circle.getColor(),...
+                circle.getWidth()));
+        end
+        
+        function presentRectangle(this, rectangle)
+            size=rectangle.getSize();
+            width=rectangle.getWidth();
+            position=rectangle.getPosition();
+            rect=[position-size/2 position+size/2];
+            if (size(1)-2*width)*(size(2)-2*width) < size(1)*size(2)/2 
+                command='draw_filled_box';
+            else
+                command='draw_box';
+            end
+            Eyelink('command', sprintf('%s %f %f %f %f %d', command, rect, ...
+                this.convertColor(rectangle.getColor())));
+        end
+        
+        function presentImage(~, image)
+            position=image.getPosition();
+            size=image.getSize();
+            imwrite(image.getData(), [image.getName() 'tmp.bmp']);
+            Eyelink('ImageTransfer', [image.getName() 'tmp.bmp'],...
+                position(1), position(2), size(1), size(2));
+        end
+        
+        function presentTextbox(this, textbox)
+            Eyelink('command', sprintf('draw_text %f %f %d %s', textbox.getPosition(), ...
+                this.convertColor(textbox.getColor()), textbox.getText()));
+        end
     end
     
+    methods (Access = protected)
+        function presentStimulus(this, stimulus)
+            this.(['present' stimulus.getType()])(stimulus);
+        end
+    end
+
     methods (Access = public)
         function this=Eyelink1000Plus(ptbAdaptor, config)
             this.params=EyelinkInitDefaults(ptbAdaptor.getPTBWindow());
-            
+
             this.params.backgroundcolour=ptbAdaptor.getBackgroundColor();
             this.params.msgfontcolour=ptbAdaptor.getBackgroundColor();
             this.params.calibrationtargetcolour=...
                 this.negativeColor(ptbAdaptor.getBackgroundColor());
-            
+
             this.params.calibrationtargetsize=config.calibrationTargetSize;
             this.params.calibrationtargetwidth=config.calibrationTargetWidth;
-            
+
             EyelinkUpdateDefaults(this.params);
-            
+
             EyelinkInit(0);
-            
+
             windowSize=ptbAdaptor.getWindowSize();
             Eyelink('command','screen_pixel_coords = %ld %ld %ld %ld',...
                 0, 0, windowSize(1)-1, windowSize(2)-1);
             Eyelink('message', 'DISPLAY_COORDS %ld %ld %ld %ld',...
                 0, 0, windowSize(1)-1, windowSize(2)-1);
-            
+
             Eyelink('command','calibration_type = %s', config.calibrationType.name);
             Eyelink('command','generate_default_targets = YES');
-            
+
             Eyelink('command','select_parser_configuration = %ld',...
                 double(config.parserConfiguration));
-            
+
             Eyelink('command', 'file_event_filter = %s',...
                 this.createConfigText(config.recordedEye,config.fileEventFilter,...
-                    enumeration('PTBModule.Eyelink.EventFilter')));
+                    enumeration('Eyelink.EventFilter')));
             Eyelink('command', 'file_event_data = %s',...
-                this.createConfigText(config.recordedEye,config.fileEventData,...
-                    enumeration('PTBModule.Eyelink.EventData')));
+                this.createConfigText(0,config.fileEventData,...
+                    enumeration('Eyelink.EventData')));
             Eyelink('command', 'file_sample_data = %s',...
                 this.createConfigText(config.recordedEye,config.fileSampleData,...
-                    enumeration('PTBModule.Eyelink.SampleData')));
+                    enumeration('Eyelink.SampleData')));
             Eyelink('command', 'link_event_filter = %s',...
                 this.createConfigText(config.recordedEye,config.linkEventFilter,...
-                    enumeration('PTBModule.Eyelink.EventFilter')));
+                    enumeration('Eyelink.EventFilter')));
             Eyelink('command', 'link_event_data = %s',...
-                this.createConfigText(config.recordedEye,config.linkEventData,...
-                    enumeration('PTBModule.Eyelink.EventData')));
+                this.createConfigText(0,config.linkEventData,...
+                    enumeration('Eyelink.EventData')));
             Eyelink('command', 'link_sample_data = %s',...
                 this.createConfigText(config.recordedEye,config.linkSampleData,...
-                    enumeration('PTBModule.Eyelink.SampleData')));
-            
+                    enumeration('Eyelink.SampleData')));
+
             Eyelink('command', 'fixation_update_interval = %d', config.fixationUpdateInterval);
             Eyelink('command', 'fixation_update_accumulate = %d', config.fixationUpdateAccumulate);
-            
+
             this.colors=[0 0 0; 0 51 204; 51 204 51; 0 153 153; 255 51 0;...
                 255 51 204; 179 179 0; 178 177 174; 158 157 154; 170 128 255;...
                 102 255 102; 153 255 255; 255 128 128; 255 128 191; 255 255 128;...
                 226 223 215];
-            
+
             this.config=config;
+            this.ptbAdaptor=ptbAdaptor;
         end
-        
+
         function calibrate(this)
             EyelinkDoTrackerSetup(this.params);
         end
-        
+
         function start(this)
             Eyelink('Openfile', this.config.dataFileName);
-            Eyelink('StartRecording',1,1,1,1);
+            Eyelink('StartRecording',1,1,(this.config.linkSampleData~=0)*1,1);
         end
-        
+
         function startTrial(~, id, message)
             Eyelink('message', 'TRIALID %d', id);
             Eyelink('command', 'record_status_message "%s"', message);
         end
-        
+
         function endTrial(~, resultCode)
             Eyelink('message', ['TRIAL_RESULT ' num2str(resultCode)]);
             Eyelink('message', 'TRIAL OK');
         end
-        
+
         function stop(~)
             Eyelink('StopRecording');
             Eyelink('CloseFile');
             Eyelink('ReceiveFile');
             Eyelink('Shutdown');
         end
-        
+
         function tag(~, text)
-            Eyelink('message', text);
+            Eyelink('message', replace(text,'%',' '));
         end
-        
+
         function dataMap=getNextEvent(this, iterations)
             dataMap=Utilities.ObjectMap();
             for i=1:iterations
@@ -122,26 +168,28 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
                 event=[];
                 switch eType
                     case this.params.STARTBLINK
-                        event=PTBModule.Eyelink.EventType.StartBlink;
+                        event=Eyelink.EventType.StartBlink;
                     case this.params.ENDBLINK
-                        event=PTBModule.Eyelink.EventType.EndBlink;
+                        event=Eyelink.EventType.EndBlink;
                     case this.params.STARTSACC
-                        event=PTBModule.Eyelink.EventType.StartSaccade;
+                        event=Eyelink.EventType.StartSaccade;
                     case this.params.ENDSACC
-                        event=PTBModule.Eyelink.EventType.EndSaccade;
+                        event=Eyelink.EventType.EndSaccade;
                     case this.params.STARTFIX
-                        event=PTBModule.Eyelink.EventType.StartFixation;
+                        event=Eyelink.EventType.StartFixation;
                     case this.params.ENDFIX
-                        event=PTBModule.Eyelink.EventType.EndFixation;
+                        event=Eyelink.EventType.EndFixation;
                     case this.params.FIXUPDATE
-                        event=PTBModule.Eyelink.EventType.FixationUpdate;
+                        event=Eyelink.EventType.FixationUpdate;
+                    case this.params.SAMPLE_TYPE
+                        event=Eyelink.EventType.Sample;
                 end
                 if ~isempty(event)
                     dataMap(event)=Eyelink('getfloatdata', eType);
                 end
             end
         end
-        
+
         function inputSignalHandler=getInputSignalHandler(this, iterations)
             function value=handler(~)
                 value=this.getNextEvent(iterations);
@@ -149,15 +197,27 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
             inputSignalHandler=@handler;
         end
         
-        function color=convertColor(this, rgb)
-            [~,color]=min(sum((this.colors-rgb).^2,2));
-            color=color-1;
+        function [saveDataHandler, saveStateHandler]=getStorageHandlers(this)
+            function saveDataH(name, value)
+                if isnumeric(value) || islogical(value)
+                    this.tag([name ': ' num2str(value)]);
+                elseif ischar(value)
+                    this.tag([name ': ' value]);
+                end
+            end
+            
+            function saveStateH(sourceName, destinationName)
+                this.tag([sourceName '=>' destinationName]);
+            end
+            
+            saveDataHandler=@saveDataH;
+            saveStateHandler=@saveStateH;
         end
-        
+
         function presentFrame(this, frame, variables)
             Eyelink('command', 'clear_screen %d',...
-                this.convertColor(this.backgroundColor));
-            frame.present(this,variables);
+                this.convertColor(this.ptbAdaptor.getBackgroundColor()));
+            presentFrame@StimulusPresentation.FrameAdaptor(this, frame, variables);
         end
     end
 end

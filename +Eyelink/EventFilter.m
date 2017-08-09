@@ -2,13 +2,13 @@ classdef EventFilter < Utilities.BitEnum
     methods (Access = public)
         function name=getName(this)
             switch this
-                case PTBModule.Eyelink.EventFilter.Fixation
+                case Eyelink.EventFilter.Fixation
                     name='FIXATION';
-                case PTBModule.Eyelink.EventFilter.FixationUpdate
+                case Eyelink.EventFilter.FixationUpdate
                     name='FIXUPDATE';
-                case PTBModule.Eyelink.EventFilter.Saccade
+                case Eyelink.EventFilter.Saccade
                     name='SACCADE';
-                case PTBModule.Eyelink.EventFilter.Blink
+                case Eyelink.EventFilter.Blink
                     name='BLINK';
             end
         end

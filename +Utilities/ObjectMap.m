@@ -19,6 +19,10 @@ classdef ObjectMap < Object.Object
             objectMap.setMap(this.map);
         end
         
+        function size=size(this)
+            size=length(this.map);
+        end
+        
         function varargout=subsref(this, key)
             if numel({key.type})==1 && strcmp(key.type, '()')
                 keyId=key.subs{1}.getId();
@@ -33,7 +37,7 @@ classdef ObjectMap < Object.Object
                 end
             else
                 try
-                    varargout=builtin('subsref', this, key);
+                    [varargout{1:nargout}]=builtin('subsref', this, key);
                 catch
                     builtin('subsref', this, key);
                 end

@@ -1,4 +1,4 @@
-classdef EyelinkConfig < Object.Object
+classdef Config < Object.Object
     properties
         calibrationTargetSize
         calibrationTargetWidth

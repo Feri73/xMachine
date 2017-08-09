@@ -7,16 +7,16 @@ classdef (Abstract) BitEnum < uint32
             end
         end
     end
-    
+
     methods (Access = public)
         function this=BitEnum(value)
             this@uint32(value);
         end
-        
+
         function enumBit=union(this, enum)
             enumBit=bitor(this,enum);
         end
-        
+
         function res=isIn(this, enumBit)
             res=bitand(enumBit,this)~=0;
         end

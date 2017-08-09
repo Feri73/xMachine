@@ -7,11 +7,9 @@ classdef Frame < Object.Object
         function this=Frame(stimulusGenerator)
             this.stimulusGenerator=stimulusGenerator;
         end
-        function present(this, adaptor, variables)
+        
+        function stimuli=getStimuli(this, variables)
             stimuli=this.stimulusGenerator(variables);
-            for i=1:numel(stimuli)
-                stimuli{i}.present(adaptor);
-            end
         end
     end
 end

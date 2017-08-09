@@ -1,0 +1,57 @@
+experiment classses (signals, state, transitions) can have public proeperties and removed run function
+
+you cannot do this: objectMap(object).getId but can do this: objectMap(object).getId(). Solve this problem (change the way I handle objectMap and VariableSpace)
+
+copy variables when passing to signals
+copy signals when apssing to states
+
+//initialize shaerdmemory.* (i mean they are equal to variablespaces e.g.)
+
+//experiment parameters (both existence and saving)
+
+XX a function for specifying nextTrial (in Experiment) which is called by stateHandlers (by user)
+
+force to use VariableSpace as sharedMemory.outputSignals
+
+init state goes to experiment and experiment runs it (to simplify the experiment's state machine)
+
+//save state changes!
+
+dataviewer messages
+
+make objectmap and variablesspace work in situations like this: inputs.tracker(EVenttype.StartBlink)
+
+support dummy mode for eyelink (aother eyetracker)
+
+are "message"s in Eyelink essential??
+
+read programming manual of eyelink
+
+have possibility that PTBAdaptor do not clear previous frame, or does not sync, etc.
+
+StateMachine.compile should become cleaner
+
+//storage module
+time module
+
+design for two display adaptors
+
+audio adaptor
+
+stimuli or stimulus?
+
+module for states that do not repeat (are not continuous)
+
+add module to have a white rectangle to use in photocell
+
+allow null handler in storage (data or state handler)
+
+//parameters
+
+read comments
+
+better desing for eyelink.nexttrial usage
+
+add father for rectangle, circlt, etc.
+
+do sth so that tagging of eyelink acts as storage==>with !V commands

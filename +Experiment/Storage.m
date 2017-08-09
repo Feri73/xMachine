@@ -5,10 +5,6 @@ classdef Storage < Object.Object
         saveVariablePredicate
         saveDataHandler
         saveStateHandler
-        
-        inputSignalLastValue
-        outputSignalLastValue
-        variableLastValue
     end
     
     methods (Access = public)

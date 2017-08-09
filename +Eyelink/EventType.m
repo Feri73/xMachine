@@ -7,5 +7,6 @@ classdef EventType < Object.Object
         StartFixation
         EndFixation
         FixationUpdate
+        Sample
     end
 end

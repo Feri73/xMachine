@@ -8,16 +8,27 @@ classdef Circle < StimulusPresentation.Stimulus
     
     methods (Access = public)
         function this=Circle(radius, position, color, width)
+            this@StimulusPresentation.Stimulus('Circle');
             this.radius=radius;
             this.position=position;
             this.color=color;
             this.width=width;
         end
         
-        function present(this, adaptor)
-            rectangle=[this.position-this.radius this.position+this.radius];
-            Screen('FrameArc', adaptor.getPTBWindow(), this.color ,rectangle,...
-                0, 360, this.width);
+        function radius=getRadius(this)
+            radius=this.radius;
+        end
+        
+        function position=getPosition(this)
+            position=this.position;
+        end
+        
+        function color=getColor(this)
+            color=this.color;
+        end
+        
+        function width=getWidth(this)
+            width=this.width;
         end
     end
 end

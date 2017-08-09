@@ -1,5 +1,15 @@
 classdef (Abstract) Stimulus < Object.Object
-    methods (Access = public, Abstract)
-        present(this, adaptor);
+    properties (Access = protected)
+        type
+    end
+    
+    methods (Access = public)
+        function this=Stimulus(type)
+            this.type=type;
+        end
+        
+        function type=getType(this)
+            type=this.type;
+        end
     end
 end

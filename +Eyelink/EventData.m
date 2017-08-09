@@ -2,17 +2,17 @@ classdef EventData < Utilities.BitEnum
     methods (Access = public)
         function name=getName(this)
             switch this
-                case PTBModule.Eyelink.EventData.Gaze
+                case Eyelink.EventData.Gaze
                     name='GAZE';
-                case PTBModule.Eyelink.EventData.GazeResolution
+                case Eyelink.EventData.GazeResolution
                     name='GAZERES';
-                case PTBModule.Eyelink.EventData.HeadReferenced
+                case Eyelink.EventData.HeadReferenced
                     name='HREF';
-                case PTBModule.Eyelink.EventData.Area
+                case Eyelink.EventData.Area
                     name='AREA';
-                case PTBModule.Eyelink.EventData.Velocity
+                case Eyelink.EventData.Velocity
                     name='VELOCITY';
-                case PTBModule.Eyelink.EventData.FixationAverage
+                case Eyelink.EventData.FixationAverage
                     name='FIXAVG';
             end
         end
