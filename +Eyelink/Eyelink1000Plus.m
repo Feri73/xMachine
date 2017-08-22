@@ -4,6 +4,8 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
         config
         colors
         ptbAdaptor
+        
+        dummyMode
     end
 
     methods (Access = private)
@@ -73,7 +75,7 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
     end
 
     methods (Access = public)
-        function this=Eyelink1000Plus(ptbAdaptor, config)
+        function this=Eyelink1000Plus(ptbAdaptor, config, dummyMode)
             this.params=EyelinkInitDefaults(ptbAdaptor.getPTBWindow());
 
             this.params.backgroundcolour=ptbAdaptor.getBackgroundColor();
@@ -85,8 +87,12 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
             this.params.calibrationtargetwidth=config.calibrationTargetWidth;
 
             EyelinkUpdateDefaults(this.params);
+            
+            if ~exist('dummyMode','var')
+                dummyMode=0;
+            end
 
-            EyelinkInit(0);
+            EyelinkInit(dummyMode);
 
             windowSize=ptbAdaptor.getWindowSize();
             Eyelink('command','screen_pixel_coords = %ld %ld %ld %ld',...
@@ -129,8 +135,9 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
 
             this.config=config;
             this.ptbAdaptor=ptbAdaptor;
+            this.dummyMode=dummyMode;
         end
-
+        
         function calibrate(this)
             EyelinkDoTrackerSetup(this.params);
         end
@@ -163,29 +170,43 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
 
         function dataMap=getNextEvent(this, iterations)
             dataMap=Utilities.ObjectMap();
-            for i=1:iterations
-                eType=Eyelink('GetNextDataType');
-                event=[];
-                switch eType
-                    case this.params.STARTBLINK
-                        event=Eyelink.EventType.StartBlink;
-                    case this.params.ENDBLINK
-                        event=Eyelink.EventType.EndBlink;
-                    case this.params.STARTSACC
-                        event=Eyelink.EventType.StartSaccade;
-                    case this.params.ENDSACC
-                        event=Eyelink.EventType.EndSaccade;
-                    case this.params.STARTFIX
-                        event=Eyelink.EventType.StartFixation;
-                    case this.params.ENDFIX
-                        event=Eyelink.EventType.EndFixation;
-                    case this.params.FIXUPDATE
-                        event=Eyelink.EventType.FixationUpdate;
-                    case this.params.SAMPLE_TYPE
-                        event=Eyelink.EventType.Sample;
-                end
-                if ~isempty(event)
-                    dataMap(event)=Eyelink('getfloatdata', eType);
+            
+            if this.dummyMode
+                mousePos=get(0, 'PointerLocation');
+                size=get(0,'ScreenSize');
+                mousePos(2)=size(4)-mousePos(2);
+                dataMap(Eyelink.EventType.StartSaccade)=struct('gstx',mousePos(1),'gsty',mousePos(2));
+                dataMap(Eyelink.EventType.EndSaccade)=struct('genx',mousePos(1),'geny',mousePos(2));
+                dataMap(Eyelink.EventType.StartFixation)=struct('gstx',mousePos(1),'gsty',mousePos(2));
+                dataMap(Eyelink.EventType.EndFixation)=struct('genx',mousePos(1),'geny',mousePos(2));
+                dataMap(Eyelink.EventType.FixationUpdate)=struct('gavx',mousePos(1),'gavy',mousePos(2));
+                dataMap(Eyelink.EventType.Sample)=struct('gx',[mousePos(1) mousePos(1)],...
+                    'gy',[mousePos(2) mousePos(2)]);
+            else
+                for i=1:iterations
+                    eType=Eyelink('GetNextDataType');
+                    event=[];
+                    switch eType
+                        case this.params.STARTBLINK
+                            event=Eyelink.EventType.StartBlink;
+                        case this.params.ENDBLINK
+                            event=Eyelink.EventType.EndBlink;
+                        case this.params.STARTSACC
+                            event=Eyelink.EventType.StartSaccade;
+                        case this.params.ENDSACC
+                            event=Eyelink.EventType.EndSaccade;
+                        case this.params.STARTFIX
+                            event=Eyelink.EventType.StartFixation;
+                        case this.params.ENDFIX
+                            event=Eyelink.EventType.EndFixation;
+                        case this.params.FIXUPDATE
+                            event=Eyelink.EventType.FixationUpdate;
+                        case this.params.SAMPLE_TYPE
+                            event=Eyelink.EventType.Sample;
+                    end
+                    if ~isempty(event)
+                        dataMap(event)=Eyelink('getfloatdata', eType);
+                    end
                 end
             end
         end

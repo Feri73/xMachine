@@ -17,10 +17,10 @@ classdef AudioAdaptor < StimulusPresentation.FrameAdaptor
             end
         end
 
-        function presentStimulus(this, sound)
-            player=this.getPlayer(sound);
-            if strcmp(sound.getType(), 'Sound')
-                soundsc(player.data, player.frequency);
+        function presentStimulus(this, stimulus)
+            player=this.getPlayer(stimulus);
+            if strcmp(stimulus.getType(), 'Sound')
+                sound(player.data, player.frequency);
             end
         end
     end

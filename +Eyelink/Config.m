@@ -14,5 +14,6 @@ classdef Config < Object.Object
         linkSampleData
         recordedEye
         parserConfiguration
+        dummyMode
     end
 end

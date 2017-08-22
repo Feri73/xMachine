@@ -7,6 +7,25 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
         textureCache
     end
     
+    methods (Access = private)
+        function presentStimuli(this, stimuli, presentationTime)
+            if exist('presentationTime', 'var')
+                refreshRate=Screen('NominalFrameRate', this.window);
+                for i=1:ceil(presentationTime*refreshRate)
+                    for j=1:numel(stimuli)
+                        this.presentStimulus(stimuli{j});
+                    end
+                    Screen('Flip', this.window);
+                end
+            else
+                for j=1:numel(stimuli)
+                    this.presentStimulus(stimuli{j});
+                end
+                Screen('Flip', this.window);
+            end
+        end
+    end
+    
     methods (Access = protected)
         function texture=getTexture(this, image)
             if isKey(this.textureCache, image.getName())
@@ -57,13 +76,20 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
     end
     
     methods (Access = public)
-        function this=DisplayAdaptor(screenNumber, backgroundColor)
+        function this=DisplayAdaptor(screenNumber, backgroundColor, skipTests)
             this.window=[];
             this.screenNumber=screenNumber;
+            if exist('skipTests','var') && skipTests
+                Screen('Preference', 'SkipSyncTests', 1);
+            end
             this.window=Screen('OpenWindow',this.screenNumber, backgroundColor);
             this.backgroundColor=backgroundColor;
             
             this.textureCache=containers.Map();
+        end
+        
+        function closeAll(~)
+            Screen('CloseAll');
         end
         
         function window=getPTBWindow(this)
@@ -80,8 +106,22 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
         end
         
         function presentFrame(this, frame, variables)
-            presentFrame@StimulusPresentation.FrameAdaptor(this, frame, variables);
-            Screen('Flip', this.window);
+            if isa(frame, 'Psychtoolbox.TimeCriticalFrame')
+                stimuli=frame.getStimuli(variables);
+                this.presentStimuli(stimuli, frame.getPresentationTime());
+                Screen('Flip', this.window);
+            elseif isa(frame, 'Psychtoolbox.SequentialFrame')
+                frames=frame.getFrames();
+                for i=1:numel(frames)-1
+                    stimuli=frames{i}.getStimuli(variables);
+                    this.presentStimuli(stimuli, frames{i}.getPresentationTime());
+                end
+                this.presentFrame(frames{end},variables);
+            else
+                stimuli=frame.getStimuli(variables);
+                this.presentStimuli(stimuli);
+            end
+            
         end
     end
 end
