@@ -19,10 +19,12 @@ classdef Experiment < Object.Object
         function resultHandler=convertStateHandler(this,state)
             function handler(sharedMemory)
                 iSignals=this.inputSignals(state);
-                for i=1:numel(iSignals)
-                    tmpISignals=sharedMemory.inputSignals;
-                    tmpISignals.(iSignals{i}.getName())=...
-                        iSignals{i}.run(sharedMemory.variables);
+                if iSignals~=Object.Object.Null
+                    for i=1:numel(iSignals)
+                        tmpISignals=sharedMemory.inputSignals;
+                        tmpISignals.(iSignals{i}.getName())=...
+                            iSignals{i}.run(sharedMemory.variables);
+                    end
                 end
                 
                 runOutputs=state.run(sharedMemory.inputSignals,...

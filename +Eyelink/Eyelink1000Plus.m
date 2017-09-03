@@ -62,6 +62,11 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
                 position(1), position(2), size(1), size(2));
         end
         
+        function presentCross(this, cross)
+            Eyelink('command', sprintf('draw_cross %f %f %d', cross.getPosition(),...
+                this.convertColor(cross.getColor())));
+        end
+        
         function presentTextbox(this, textbox)
             Eyelink('command', sprintf('draw_text %f %f %d %s', textbox.getPosition(), ...
                 this.convertColor(textbox.getColor()), textbox.getText()));

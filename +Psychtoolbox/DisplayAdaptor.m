@@ -57,6 +57,16 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
                 rect, rectangle.getWidth());
         end
         
+        function presentCross(this, cross)
+            position=cross.getPosition();
+            width=cross.getWidth();
+            size=cross.getSize();
+            Screen('DrawLine', this.window, cross.getColor(),...
+                position(1)-size(1)/2, position(2), position(1)+size(1)/2, position(2), width);
+            Screen('DrawLine', this.window, cross.getColor(), position(1),...
+                position(2)-size(2)/2,position(1), position(2)+size(2)/2, width);
+        end
+        
         function presentImage(this, image)
             rectangle=[image.getPosition()-image.getSize()/2 ...
                 image.getPosition()+image.getSize()/2];
@@ -81,6 +91,8 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
             this.screenNumber=screenNumber;
             if exist('skipTests','var') && skipTests
                 Screen('Preference', 'SkipSyncTests', 1);
+            else
+                Screen('Preference', 'SkipSyncTests', 0);
             end
             this.window=Screen('OpenWindow',this.screenNumber, backgroundColor);
             this.backgroundColor=backgroundColor;
@@ -88,8 +100,8 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
             this.textureCache=containers.Map();
         end
         
-        function closeAll(~)
-            Screen('CloseAll');
+        function close(this)
+            Screen('Close', this.window);
         end
         
         function window=getPTBWindow(this)

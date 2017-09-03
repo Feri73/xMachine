@@ -57,3 +57,5 @@ add father for rectangle, circlt, etc.
 do sth so that tagging of eyelink acts as storage==>with !V commands
 
 use the flip command like what amin did
+
+have extra useful part for things like fixation class, audio adaptor, general display adaptor, timedstate, etc.
