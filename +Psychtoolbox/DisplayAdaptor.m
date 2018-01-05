@@ -34,6 +34,10 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
                 if isempty(image.getData())
                     [data,~,alpha]=imread(image.getFileAddress());
                     if ~isempty(alpha)
+                        if size(size(data),2)==2
+                            data(:,:,2)=data;
+                            data(:,:,3)=data(:,:,1);
+                        end
                         data(:,:,4)=alpha;
                     end
                     image.fromMatrix(data, image.getName());
@@ -95,6 +99,7 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
                 Screen('Preference', 'SkipSyncTests', 0);
             end
             this.window=Screen('OpenWindow',this.screenNumber, backgroundColor);
+            Screen('BlendFunction', this.window, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             this.backgroundColor=backgroundColor;
             
             this.textureCache=containers.Map();
