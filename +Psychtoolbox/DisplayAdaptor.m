@@ -15,13 +15,13 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
                     for j=1:numel(stimuli)
                         this.presentStimulus(stimuli{j});
                     end
-                    Screen('Flip', this.window);
+                    this.flip();
                 end
             else
                 for j=1:numel(stimuli)
                     this.presentStimulus(stimuli{j});
                 end
-                Screen('Flip', this.window);
+                this.flip();
             end
         end
     end
@@ -43,7 +43,7 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
             end
         end
         
-        function presentCircle(~, circle)
+        function presentCircle(this, circle)
             rectangle=[circle.getPosition()-circle.getRadius()...
                 circle.getPosition()+circle.getRadius()];
             Screen('FrameArc', this.window, circle.getColor() ,rectangle,...
@@ -60,11 +60,11 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
         function presentCross(this, cross)
             position=cross.getPosition();
             width=cross.getWidth();
-            size=cross.getSize();
-            Screen('DrawLine', this.window, cross.getColor(),...
-                position(1)-size(1)/2, position(2), position(1)+size(1)/2, position(2), width);
-            Screen('DrawLine', this.window, cross.getColor(), position(1),...
-                position(2)-size(2)/2,position(1), position(2)+size(2)/2, width);
+            size=cross.getSize();         
+            Screen('FillRect', this.window, cross.getColor(),...
+                [position(1)-width(1)/2, position(2)-size(2)/2, position(1)+width(1)/2, position(2)+size(2)/2]);
+            Screen('FillRect', this.window, cross.getColor(),...
+                [position(1)-size(1)/2, position(2)-width(2)/2, position(1)+size(1)/2, position(2)+width(2)/2]);
         end
         
         function presentImage(this, image)
@@ -86,7 +86,7 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
     end
     
     methods (Access = public)
-        function this=DisplayAdaptor(screenNumber, backgroundColor, skipTests)
+        function this=DisplayAdaptor(screenNumber, backgroundColor, skipTests, gammaTable)
             this.window=[];
             this.screenNumber=screenNumber;
             if exist('skipTests','var') && skipTests
@@ -95,6 +95,12 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
                 Screen('Preference', 'SkipSyncTests', 0);
             end
             this.window=Screen('OpenWindow',this.screenNumber, backgroundColor);
+            Screen('BlendFunction',this.window,GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+            
+            if exist('gammaTable','var')
+                Screen('LoadNormalizedGammaTable', this.screenNumber, gammaTable*[1 1 1]);
+            end
+            
             this.backgroundColor=backgroundColor;
             
             this.textureCache=containers.Map();
@@ -121,7 +127,7 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
             if isa(frame, 'Psychtoolbox.TimeCriticalFrame')
                 stimuli=frame.getStimuli(variables);
                 this.presentStimuli(stimuli, frame.getPresentationTime());
-                Screen('Flip', this.window);
+                this.flip();
             elseif isa(frame, 'Psychtoolbox.SequentialFrame')
                 frames=frame.getFrames();
                 for i=1:numel(frames)-1
@@ -134,6 +140,10 @@ classdef DisplayAdaptor < StimulusPresentation.FrameAdaptor
                 this.presentStimuli(stimuli);
             end
             
+        end
+        
+        function flip(this)
+            Screen('Flip', this.window);
         end
     end
 end
