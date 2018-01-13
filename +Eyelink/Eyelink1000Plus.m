@@ -30,6 +30,9 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
         end
         
         function color=convertColor(this, rgb)
+            if size(rgb,2)>3
+                rgb=rgb(1:3);
+            end
             [~,color]=min(sum((this.colors-rgb).^2,2));
             color=color-1;
         end
