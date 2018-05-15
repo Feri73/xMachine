@@ -74,6 +74,23 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
             Eyelink('command', sprintf('draw_text %f %f %d %s', textbox.getPosition(), ...
                 this.convertColor(textbox.getColor()), textbox.getText()));
         end
+        
+        function res=valueToString(this, value)
+            if isnumeric(value) || islogical(value)
+                res=mat2str(value);
+            elseif ischar(value)
+                res=['''' value ''''];
+            elseif iscell(value)
+                res='{';
+                for v=value
+                    res=[res ',' this.valueToString(v{1})];
+                end
+                res=[res '}'];
+            elseif isa(value,'containers.Map')
+                res=['containers.Map(' this.valueToString(keys(value)) ','...
+                    this.valueToString(values(value)) ')'];
+            end
+        end
     end
     
     methods (Access = protected)
@@ -228,11 +245,7 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
         
         function [saveDataHandler, saveStateHandler]=getStorageHandlers(this)
             function saveDataH(name, value)
-                if isnumeric(value) || islogical(value)
-                    this.tag([name ': ' num2str(value)]);
-                elseif ischar(value)
-                    this.tag([name ': ' value]);
-                end
+                this.tag([name ': ' this.valueToString(value)]);
             end
             
             function saveStateH(sourceName, destinationName)
