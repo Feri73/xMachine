@@ -89,6 +89,8 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
             elseif isa(value,'containers.Map')
                 res=['containers.Map(' this.valueToString(keys(value)) ','...
                     this.valueToString(values(value)) ')'];
+            else
+                res='not supported';
             end
         end
     end
