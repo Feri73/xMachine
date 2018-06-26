@@ -75,7 +75,7 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
                 this.convertColor(textbox.getColor()), textbox.getText()));
         end
         
-        function res=valueToString(this, value)
+        function res=valueToString(this, value, maxLength)
             if isnumeric(value) || islogical(value)
                 res=mat2str(value);
             elseif ischar(value)
@@ -90,7 +90,11 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
                 res=['containers.Map(' this.valueToString(keys(value)) ','...
                     this.valueToString(values(value)) ')'];
             else
-                res='not supported';
+                res='<not supported>';
+            end
+            
+            if exist('maxLength','var') && numel(res)>maxLength
+                res='<too long>';
             end
         end
     end
@@ -247,7 +251,7 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
         
         function [saveDataHandler, saveStateHandler]=getStorageHandlers(this)
             function saveDataH(name, value)
-                this.tag([name ': ' this.valueToString(value)]);
+                this.tag([name ': ' this.valueToString(value, 253-numel(name))]);
             end
             
             function saveStateH(sourceName, destinationName)
