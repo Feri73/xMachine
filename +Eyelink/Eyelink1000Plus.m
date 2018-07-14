@@ -251,7 +251,7 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
         
         function [saveDataHandler, saveStateHandler]=getStorageHandlers(this)
             function saveDataH(name, value)
-                this.tag([name ': ' this.valueToString(value, 253-numel(name))]);
+                this.tag([name ': ' this.valueToString(value, 241-numel(name))]);
             end
             
             function saveStateH(sourceName, destinationName)
