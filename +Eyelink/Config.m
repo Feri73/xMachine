@@ -15,5 +15,6 @@ classdef Config < Object.Object
         recordedEye
         parserConfiguration
         dummyMode
+        ip
     end
 end

@@ -116,6 +116,8 @@ classdef Eyelink1000Plus < StimulusPresentation.FrameAdaptor
 
             this.params.calibrationtargetsize=config.calibrationTargetSize;
             this.params.calibrationtargetwidth=config.calibrationTargetWidth;
+            
+            Eyelink('SetAddress',config.ip);
 
             EyelinkUpdateDefaults(this.params);
             
